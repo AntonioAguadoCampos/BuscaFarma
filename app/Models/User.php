@@ -47,6 +47,11 @@ class User extends Authenticatable
         ];
     }
 
+    public function pharmacy()
+    {
+        return $this->belongsTo(Pharmacy::class);
+    }
+
     protected function isAdmin(): bool {
         return $this->email === 'aac@gmail.com';
     }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\Pharmacy;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
@@ -29,15 +30,14 @@ class ProductResource extends Resource
             ->schema([
                 TextInput::make('name')->columnSpanFull(),
                 TextInput::make('description')->columnSpanFull(),
-                TextInput::make('price')->numeric()->columnSpanFull(),
-
+                TextInput::make('price')->numeric()->step(0.1)->columnSpanFull()
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->query(Product::where('pharmacy_id', Auth::user()->id))
+            ->query(Product::where('pharmacy_id', Pharmacy::where('user_id', Auth::user()->id)->first()->id))
             ->columns([
                 TextColumn::make('name'),
                 TextColumn::make('description'),
