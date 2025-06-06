@@ -21,9 +21,11 @@ export default function search() {
   return (
   <div className="min-h-screen bg-white p-6 sm:p-6 font-sans">
     {/* Título */}
-    <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-green-700 mb-8 text-center">
-      BuscaFarma
-    </h1>
+    <a href="http://buscafarma.test">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-green-700 mb-8 text-center">
+        BuscaFarma
+        </h1>
+    </a>
 
     {/* Descripción */}
     <p className="text-base sm:text-lg text-gray-800 text-center mb-8 max-w-4xl mx-auto text-justify px-2">
