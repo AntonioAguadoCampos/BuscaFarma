@@ -1,89 +1,139 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import Select from 'react-select';
 
 export default function search() {
-  const [busqueda, setBusqueda] = useState("");
-  const [historial, setHistorial] = useState<string[]>([]);
+    const [historial, setHistorial] = useState<string[]>([]);
+    const [farmacias, setFarmacias] = useState<any[]>([]);
+    const [productosDisponibles, setProductosDisponibles] = useState<any[]>([]);
 
-  const manejarEnvio = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (busqueda.trim() !== "") {
-      setHistorial([busqueda, ...historial]);
-      setBusqueda("");
-    }
-  };
+    useEffect(() => {
+        getProducts();
+    }, []);
 
-  const eliminarBusqueda = (indexAEliminar: number) => {
-    const nuevoHistorial = historial.filter((_, i) => i !== indexAEliminar);
-    setHistorial(nuevoHistorial);
-  };
+    const getProducts = async () => {
+        try {
+            const response = await fetch('/api/products');
+            const data = await response.json();
+            console.log(data);
+            setProductosDisponibles(data.map((name: string) => ({ label: name, value: name })));
+        } catch (error) {
+            console.error('Error al obtener los nombres de productos:', error);
+        }
+    };
 
-  return (
-  <div className="min-h-screen bg-white p-6 sm:p-6 font-sans">
-    {/* Título */}
-    <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-green-700 mb-8 text-center">
-      BuscaFarma
-    </h1>
+    const filterByPrice = () =>
+        fetch('api/pharmacies/byPrice', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')!.getAttribute('content')!,
+            },
+            body: JSON.stringify({
+                productNames: historial,
+            }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Error en la solicitud');
+                }
+                return response.json();
+            })
+            .then((data) => {
+                const farmacias: any[] = [];
+                for (const product of data) {
+                    const existPharmacy = farmacias.find((f) => f.id === product.pharmacy_id);
+                    if (existPharmacy) {
+                        existPharmacy.products.push(product.name);
+                    } else {
+                        const farmacia = product.pharmacy;
+                        farmacia.products = [product.name];
+                        farmacias.push(farmacia);
+                    }
+                }
+                console.log(farmacias);
+                setFarmacias(farmacias);
+            });
 
-    {/* Descripción */}
-    <p className="text-base sm:text-lg text-gray-800 text-center mb-8 max-w-4xl mx-auto text-justify px-2">
-      En esta página podrás buscar productos farmacéuticos disponibles. Escribe el nombre del medicamento o producto que deseas encontrar y guarda tantas búsquedas como necesites.
-    </p>
+    return (
+        <div className="min-h-screen bg-white p-6 font-sans sm:p-6">
+            {/* Título */}
+            <a href="http://buscafarma.test">
+                <h1 className="mb-8 text-center text-4xl font-bold text-green-700 sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">BuscaFarma</h1>
+            </a>
 
-    {/* Formulario de búsqueda */}
-    <form
-      onSubmit={manejarEnvio}
-      className="max-w-xl mx-auto flex flex-col sm:flex-row gap-4 mb-6"
-    >
-      <input
-        type="text"
-        value={busqueda}
-        onChange={(e) => setBusqueda(e.target.value)}
-        placeholder="Buscar producto..."
-        className="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-green-200"
-      />
-      <button
-        type="submit"
-        className="bg-green-800 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-      >
-        Añadir a búsqueda
-      </button>
-    </form>
+            {/* Descripción */}
+            <p className="mx-auto mb-8 max-w-4xl px-2 text-center text-justify text-base text-gray-800 sm:text-lg">
+                En esta página podrás buscar productos farmacéuticos disponibles. Escribe el nombre del medicamento o producto que deseas encontrar y
+                guarda tantas búsquedas como necesites.
+            </p>
 
-    {/* Historial de búsquedas */}
-    <div className="max-w-xl mx-auto space-y-2">
-      {historial.length > 0 && (
-        <>
-          <h2 className="text-green-800 text-lg sm:text-xl font-semibold mb-2">
-            Medicamentos a buscar:
-          </h2>
-          {historial.map((item, index) => (
-            <div
-              key={index}
-              className="p-3 bg-green-50 border border-green-200 rounded-md text-green-900 flex justify-between items-center"
-            >
-              <span className="break-words max-w-xs">{item}</span>
-              <button
-                onClick={() => eliminarBusqueda(index)}
-                className="text-red-600 text-sm ml-4 hover:underline"
-              >
-                Eliminar
-              </button>
+            <div className="mx-auto max-w-xl space-y-4">
+                {/* Selector de productos */}
+                {productosDisponibles && (
+                    <div>
+                        <h2 className="mb-2 text-lg font-semibold text-green-800 sm:text-xl">Selecciona medicamentos a buscar:</h2>
+                        <Select
+                            options={productosDisponibles}
+                            isMulti
+                            value={historial.map((h) => ({ label: h, value: h }))}
+                            onChange={(selectedOptions) => setHistorial(selectedOptions.map((option) => option.value))}
+                            placeholder="Buscar y seleccionar productos..."
+                            className="text-green-900"
+                        />
+                    </div>
+                )}
             </div>
-          ))}
-        </>
-      )}
-    </div>
 
-    {/* Botón final */}
-    <div className="flex justify-center mt-8 gap-6 flex-wrap">
-      <Button className="bg-green-800 text-white text-base sm:text-lg px-6 py-3 rounded-md hover:bg-green-700 transition-colors border border-green-800">
-        Búsqueda por precio
-      </Button>
-      <Button className="bg-green-800 text-white text-base sm:text-lg px-6 py-3 rounded-md hover:bg-green-700 transition-colors border border-green-800">
-        Búsqueda por distancia
-      </Button>
-    </div>
-  </div>
-);
+            {/* Botón final */}
+            <div className="mt-8 flex flex-wrap justify-center gap-6">
+                <Button
+                    onClick={filterByPrice}
+                    className="rounded-md border border-green-800 bg-green-800 px-6 py-3 text-base text-white transition-colors hover:bg-green-700 sm:text-lg"
+                >
+                    Búsqueda por precio
+                </Button>
+                <Button className="rounded-md border border-green-800 bg-green-800 px-6 py-3 text-base text-white transition-colors hover:bg-green-700 sm:text-lg">
+                    Búsqueda por distancia
+                </Button>
+            </div>
+
+            {farmacias && farmacias.length > 0 && (
+                <div className="mx-auto max-w-5xl p-6">
+                    <h1 className="mb-6 text-3xl font-bold">Farmacias</h1>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {farmacias.map((farmacia: any) => (
+                            <div key={farmacia.id} className="rounded-xl bg-white p-4 shadow">
+                                <img src={`/storage/${farmacia.image}`} alt={farmacia.name} className="mb-4 h-40 w-full rounded-md object-cover" />
+                                <h2 className="text-xl font-semibold">{farmacia.name}</h2>
+                                <p className="text-gray-600">{farmacia.address}</p>
+                                <p className="text-sm text-gray-500">📞 {farmacia.phone}</p>
+                                <p className="mb-2 text-sm text-gray-500">📧 {farmacia.email}</p>
+                                {farmacia.products && farmacia.products.length > 0 && (
+                                    <div className="relative mt-2 rounded-md bg-gray-100 p-4 pt-8">
+                                        <button
+                                            className="absolute top-2 right-2 rounded-full bg-green-600 px-3 py-1 text-lg text-white shadow transition hover:bg-green-700"
+                                            title="Agregar producto"
+                                        >
+                                            +
+                                        </button>
+
+                                        <p className="mb-2 text-sm font-semibold">Productos:</p>
+                                        <ul className="list-inside list-disc text-sm text-gray-700">
+                                            {farmacia.products.map((product: string, index: number) => (
+                                                <li key={index}>{product}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }
