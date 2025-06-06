@@ -46,7 +46,7 @@ export default function search() {
         type="submit"
         className="bg-green-800 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
       >
-        Buscar
+        Añadir a búsqueda
       </button>
     </form>
 
@@ -76,9 +76,12 @@ export default function search() {
     </div>
 
     {/* Botón final */}
-    <div className="flex justify-center mt-8">
+    <div className="flex justify-center mt-8 gap-6 flex-wrap">
       <Button className="bg-green-800 text-white text-base sm:text-lg px-6 py-3 rounded-md hover:bg-green-700 transition-colors border border-green-800">
-        <a href="http://buscafarma.test/searchResult">Realizar búsqueda</a>
+        Búsqueda por precio
+      </Button>
+      <Button className="bg-green-800 text-white text-base sm:text-lg px-6 py-3 rounded-md hover:bg-green-700 transition-colors border border-green-800">
+        Búsqueda por distancia
       </Button>
     </div>
   </div>
