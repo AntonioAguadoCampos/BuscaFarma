@@ -11,6 +11,14 @@ Route::get('/contact', function () {
     return Inertia::render('contact');
 })->name('contact');
 
+Route::get('/search', function () {
+    return Inertia::render('search');
+})->name('search');
+
+Route::get('/searchResult', function () {
+    return Inertia::render('searchResult');
+})->name('searchResult');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
