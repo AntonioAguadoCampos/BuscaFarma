@@ -17,7 +17,6 @@ export default function search() {
         try {
             const response = await fetch('/api/products');
             const data = await response.json();
-            console.log(data);
             setProductosDisponibles(data.map((name: string) => ({ label: name, value: name })));
         } catch (error) {
             console.error('Error al obtener los nombres de productos:', error);
@@ -54,8 +53,47 @@ export default function search() {
                         farmacias.push(farmacia);
                     }
                 }
-                console.log(farmacias);
                 setFarmacias(farmacias);
+            });
+
+    const filterByLocation = () =>
+        fetch('api/pharmacies/byLocation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')!.getAttribute('content')!,
+            },
+            body: JSON.stringify({
+                productNames: historial,
+                direccion: 'C. Juan de Quesada, 30, 35001 Las Palmas de Gran Canaria, Las Palmas',
+            }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Error en la solicitud');
+                }
+                return response.json();
+            })
+            .then((pharmacies) => {
+                console.log(pharmacies);
+                const farmacias: any[] = [];
+                for (const product of historial) {
+                    for (const pharmacyReq of pharmacies) {
+                        const products: string[] = pharmacyReq.products.map((product: any) => product.name);
+                        if (products.includes(product)) {
+                            const existPharmacy = farmacias.find((f) => f.id === pharmacyReq.id);
+                            if (existPharmacy) {
+                                existPharmacy.products.push(product);
+                            } else {
+                                pharmacyReq.products = [product];
+                                farmacias.push(pharmacyReq);
+                            }
+                        }
+                    }
+                }
+
+                // setFarmacias(farmacias);
             });
 
     return (
@@ -96,7 +134,10 @@ export default function search() {
                 >
                     Búsqueda por precio
                 </Button>
-                <Button className="rounded-md border border-green-800 bg-green-800 px-6 py-3 text-base text-white transition-colors hover:bg-green-700 sm:text-lg">
+                <Button
+                    onClick={filterByLocation}
+                    className="rounded-md border border-green-800 bg-green-800 px-6 py-3 text-base text-white transition-colors hover:bg-green-700 sm:text-lg"
+                >
                     Búsqueda por distancia
                 </Button>
             </div>
