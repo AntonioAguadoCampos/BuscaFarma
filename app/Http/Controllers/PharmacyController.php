@@ -10,6 +10,7 @@ use App\Models\Product;
 
 class PharmacyController extends Controller
 {
+
     public function index()
     {
         $farmacias = Pharmacy::all();
