@@ -15,6 +15,25 @@ class PharmacyController extends Controller
         $farmacias = Pharmacy::all();
         return response()->json($farmacias);
     }
+    
+    public function byPrice(Request $request)
+    {
+        $productosMasBaratos = Product::with('pharmacy')
+            ->whereIn('name', $request->productNames)
+            ->whereIn('id', function ($query) {
+                $query->selectRaw('MIN(p2.id)')
+                    ->from('products as p2')
+                    ->whereColumn('p2.name', 'products.name')
+                    ->whereRaw('p2.price = (
+                        SELECT MIN(p3.price)
+                        FROM products p3
+                        WHERE p3.name = p2.name
+                    )');
+            })
+            ->get();
+
+        return response()->json($productosMasBaratos);
+    }
 
     public function byLocation(Request $request)
     {
@@ -65,7 +84,7 @@ class PharmacyController extends Controller
         // 4. Ordenar por distancia ascendente
         usort($resultados, fn($a, $b) => $a['distancia_metros'] <=> $b['distancia_metros']);
 
-        return response()->json($farmacias);
+        return response()->json($resultados);
     }
 
 
