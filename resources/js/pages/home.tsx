@@ -64,18 +64,8 @@ export default function BuscaFarma() {
         })
             .then((res) => res.json())
             .then((data) => {
-                const farmacias: any[] = [];
-                for (const product of data) {
-                    const existPharmacy = farmacias.find((f) => f.id === product.pharmacy_id);
-                    if (existPharmacy) {
-                        existPharmacy.products.push(product.name);
-                    } else {
-                        const farmacia = product.pharmacy;
-                        farmacia.products = [product.name];
-                        farmacias.push(farmacia);
-                    }
-                }
-                setFarmacias(farmacias);
+                console.log(data);
+                setFarmacias(data);
             });
 
     const filterByLocation = () =>
@@ -223,8 +213,8 @@ export default function BuscaFarma() {
                                                 </button>
                                                 <p className="mb-2 text-sm font-semibold">Productos:</p>
                                                 <ul className="list-inside list-disc text-sm text-gray-700">
-                                                    {farmacia.products.map((product: string, idx: number) => (
-                                                        <li key={idx}>{product}</li>
+                                                    {farmacia.products.map((product: any) => (
+                                                        <li key={product.id}>{product.name}</li>
                                                     ))}
                                                 </ul>
                                             </div>

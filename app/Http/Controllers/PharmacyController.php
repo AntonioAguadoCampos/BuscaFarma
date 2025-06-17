@@ -16,24 +16,64 @@ class PharmacyController extends Controller
         $farmacias = Pharmacy::all();
         return response()->json($farmacias);
     }
+
+    
     
     public function byPrice(Request $request)
     {
-        $productosMasBaratos = Product::with('pharmacy')
-            ->whereIn('name', $request->productNames)
-            ->whereIn('id', function ($query) {
-                $query->selectRaw('MIN(p2.id)')
-                    ->from('products as p2')
-                    ->whereColumn('p2.name', 'products.name')
-                    ->whereRaw('p2.price = (
-                        SELECT MIN(p3.price)
-                        FROM products p3
-                        WHERE p3.name = p2.name
-                    )');
-            })
-            ->get();
+        $productNames = $request->input('productNames', []);
 
-        return response()->json($productosMasBaratos);
+    if (empty($productNames)) {
+        return response()->json(['error' => 'No product names provided'], 400);
+    }
+
+    // Paso 1: obtener todos los productos con sus farmacias
+    $products = Product::whereIn('name', $productNames)
+        ->with('pharmacy')
+        ->get();
+
+    // Paso 2: inicializar productos restantes y resultados
+    $remainingNames = collect($productNames);
+    $assignedPharmacies = collect();
+
+    while ($remainingNames->isNotEmpty()) {
+        $candidates = $products->filter(fn($p) => $remainingNames->contains($p->name));
+
+        // Agrupar por farmacia
+        $grouped = $candidates->groupBy('pharmacy_id')->map(function ($items) {
+            return [
+                'pharmacy' => $items->first()->pharmacy,
+                'products' => $items,
+                'matchCount' => $items->count(),
+                'totalPrice' => $items->sum('price'),
+            ];
+        });
+
+        if ($grouped->isEmpty()) break;
+
+        // Buscar farmacias con más coincidencias
+        $maxMatch = $grouped->max('matchCount');
+        $bestMatches = $grouped->filter(fn($g) => $g['matchCount'] === $maxMatch);
+
+        // Elegir la más barata de las mejores
+        $bestPharmacy = $bestMatches->sortBy('totalPrice')->first();
+        $assignedNames = $bestPharmacy['products']->pluck('name')->unique();
+
+        // Agregar al resultado
+        $pharmacyData = $bestPharmacy['pharmacy']->toArray();
+        $pharmacyData['products'] = $bestPharmacy['products']->map(fn($p) => [
+            'id' => $p->id,
+            'name' => $p->name,
+            'price' => $p->price,
+        ])->values();
+
+        $assignedPharmacies->push($pharmacyData);
+
+        // Eliminar esos productos del listado restante
+        $remainingNames = $remainingNames->reject(fn($name) => $assignedNames->contains($name));
+        }
+
+        return response()->json($assignedPharmacies->values());
     }
 
     public function byLocation(Request $request)
@@ -41,19 +81,16 @@ class PharmacyController extends Controller
         $productos = $request->input('productNames');
         $direccionUsuario = $request->input('direccion');
 
-        // 1. Farmacias que tienen al menos uno de los productos
         $farmaciaIds = Product::whereIn('name', $productos)
             ->pluck('pharmacy_id')
             ->unique();
 
-        // 2. Obtener farmacias y sus productos filtrados
         $farmacias = Pharmacy::whereIn('id', $farmaciaIds)
             ->with(['products' => function ($query) use ($productos) {
                 $query->whereIn('name', $productos);
             }])
             ->get();
 
-        // 3. Calcular distancia con Google Maps
         $googleKey = env('GOOGLE_MAPS_API_KEY');
         $resultados = [];
 
@@ -82,7 +119,6 @@ class PharmacyController extends Controller
             ];
         }
 
-        // 4. Ordenar por distancia ascendente
         usort($resultados, fn($a, $b) => $a['distancia_metros'] <=> $b['distancia_metros']);
 
         return response()->json($resultados);
