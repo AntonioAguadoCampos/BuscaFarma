@@ -11,4 +11,4 @@ Route::post('/pharmacies/byPrice', [PharmacyController::class, 'byPrice']);
 Route::post('/pharmacies/byLocation', [PharmacyController::class, 'byLocation']);
 Route::get('/products', [ProductController::class, 'index']);
 Route::post('/messages', [MessageController::class, 'create']);
-Route::post('/reservation/mail', [ReservationController::class, 'mail']);
+Route::post('/reservation', [ReservationController::class, 'create']);

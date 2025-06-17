@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
@@ -17,5 +16,10 @@ class Product extends Model
     public function pharmacy()
     {
         return $this->belongsTo(Pharmacy::class);
+    }
+
+    public function reservations()
+    {
+        return $this->belongsToMany(Reservation::class, 'product_reservation');
     }
 }

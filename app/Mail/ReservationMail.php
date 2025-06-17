@@ -16,9 +16,8 @@ class ReservationMail extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct()
+    public function __construct(protected string $status)
     {
-        //
     }
 
     /**
@@ -38,6 +37,7 @@ class ReservationMail extends Mailable
     {
         return new Content(
             view: 'emails.reservation',
+            with: ['status' => $this->status]
         );
     }
 

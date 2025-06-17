@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\MessageResource\Pages;
 use App\Filament\Resources\MessageResource\RelationManagers;
+use App\Http\Controllers\ReservationController;
 use App\Models\Message;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -22,7 +23,7 @@ class MessageResource extends Resource
 {
     protected static ?string $model = Message::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-inbox-arrow-down';
 
     public static function form(Form $form): Form
     {
@@ -71,6 +72,7 @@ class MessageResource extends Resource
             
         ];
     }
+    
     public static function canAccess(): bool
     {
         return Auth::user()?->email === 'aac@gmail.com';

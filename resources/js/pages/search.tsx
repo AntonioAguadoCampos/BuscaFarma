@@ -96,8 +96,10 @@ export default function search() {
                 setFarmacias(farmacias);
             });
 
+    const addToCart = (farmacia: any) => console.log(farmacia);
+
     return (
-        <div className="flex flex-col min-h-screen bg-white p-6 font-sans sm:p-6">
+        <div className="flex min-h-screen flex-col bg-white p-6 font-sans sm:p-6">
             <main className="flex-grow p-6 sm:p-6">
                 {/* Título */}
                 <a href="http://buscafarma.test">
@@ -106,8 +108,8 @@ export default function search() {
 
                 {/* Descripción */}
                 <p className="mx-auto mb-8 max-w-4xl px-2 text-center text-justify text-base text-gray-800 sm:text-lg">
-                    En esta página podrás buscar productos farmacéuticos disponibles. Escribe el nombre del medicamento o producto que deseas encontrar y
-                    guarda tantas búsquedas como necesites.
+                    En esta página podrás buscar productos farmacéuticos disponibles. Escribe el nombre del medicamento o producto que deseas
+                    encontrar y guarda tantas búsquedas como necesites.
                 </p>
 
                 <div className="mx-auto max-w-xl space-y-4">
@@ -149,7 +151,11 @@ export default function search() {
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {farmacias.map((farmacia: any) => (
                                 <div key={farmacia.id} className="rounded-xl bg-white p-4 shadow">
-                                    <img src={`/storage/${farmacia.image}`} alt={farmacia.name} className="mb-4 h-40 w-full rounded-md object-cover" />
+                                    <img
+                                        src={`/storage/${farmacia.image}`}
+                                        alt={farmacia.name}
+                                        className="mb-4 h-40 w-full rounded-md object-cover"
+                                    />
                                     <h2 className="text-xl font-semibold">{farmacia.name}</h2>
                                     <p className="text-gray-600">{farmacia.address}</p>
                                     <p className="text-sm text-gray-500">📞 {farmacia.phone}</p>
@@ -159,8 +165,9 @@ export default function search() {
                                             <button
                                                 className="absolute top-2 right-2 rounded-full bg-green-600 px-3 py-1 text-lg text-white shadow transition hover:bg-green-700"
                                                 title="Agregar producto"
+                                                onClick={() => addToCart(farmacia)}
                                             >
-                                                +
+                                                {'-'}
                                             </button>
 
                                             <p className="mb-2 text-sm font-semibold">Productos:</p>
@@ -175,15 +182,19 @@ export default function search() {
                             ))}
                         </div>
                     </div>
-            )} 
+                )}
             </main>
-            <footer className="w-full bg-green-700 text-white py-6 mt-auto">
-                <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <span className="text-xl font-bold">BuscaFarma ©</span>
-                <div className="flex flex-col sm:flex-row sm:space-x-6 text-base sm:text-xl text-center sm:text-left">
-                    <span role="img" aria-label="teléfono">📞 666 000 000</span>
-                    <span role="img" aria-label="carta">✉️ buscafarma@gmail.com</span>
-                </div>
+            <footer className="mt-auto w-full bg-green-700 py-6 text-white">
+                <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 sm:flex-row">
+                    <span className="text-xl font-bold">BuscaFarma ©</span>
+                    <div className="flex flex-col text-center text-base sm:flex-row sm:space-x-6 sm:text-left sm:text-xl">
+                        <span role="img" aria-label="teléfono">
+                            📞 666 000 000
+                        </span>
+                        <span role="img" aria-label="carta">
+                            ✉️ buscafarma@gmail.com
+                        </span>
+                    </div>
                 </div>
             </footer>
         </div>

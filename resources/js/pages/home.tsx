@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
@@ -8,6 +10,11 @@ export default function BuscaFarma() {
     const [farmacias, setFarmacias] = useState<any[]>([]);
     const [productosDisponibles, setProductosDisponibles] = useState<any[]>([]);
     const [address, setAddress] = useState('');
+    const [email, setEmail] = useState('');
+
+    const isValidEmail = (email: string) => {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    };
 
     useEffect(() => {
         getProducts();
@@ -37,9 +44,12 @@ export default function BuscaFarma() {
 
                 if (data.status === 'OK') {
                     const formatted = data.results[0]?.formatted_address;
+                    console.log(data.results);
                     setAddress(formatted || 'Dirección no encontrada');
                 }
-            } catch (err: any) {}
+            } catch (err: any) {
+                //
+            }
         });
     };
 
@@ -100,13 +110,28 @@ export default function BuscaFarma() {
                 setFarmacias(farmacias);
             });
 
+    const addToCart = (farmacia: any) => {
+        farmacia.reserved = !farmacia.reserved;
+        setFarmacias([...farmacias]);
+    };
+
+    const makeReservation = () => {
+        fetch('api/reservation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+            },
+            body: JSON.stringify({ farmacias: farmacias.filter((farmacia) => farmacia.reserved), email }),
+        }).then((res) => res.json());
+    };
+
     return (
         <div className="flex min-h-screen flex-col bg-white p-6 font-sans">
             <main className="flex-grow p-6 sm:p-6">
                 <header className="xl:text-10xl mb-10 text-center text-4xl font-bold text-green-700 sm:text-7xl md:text-8xl lg:text-9xl">
                     BuscaFarma
                 </header>
-                {address}
                 <div className="flex justify-center px-4">
                     <Card className="flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl shadow-lg md:flex-row">
                         <div className="flex items-center justify-center bg-white p-4 md:w-1/2">
@@ -192,8 +217,9 @@ export default function BuscaFarma() {
                                                 <button
                                                     className="absolute top-2 right-2 rounded-full bg-green-600 px-3 py-1 text-lg text-white shadow transition hover:bg-green-700"
                                                     title="Agregar producto"
+                                                    onClick={() => addToCart(farmacia)}
                                                 >
-                                                    +
+                                                    {farmacia.reserved ? '-' : '+'}
                                                 </button>
                                                 <p className="mb-2 text-sm font-semibold">Productos:</p>
                                                 <ul className="list-inside list-disc text-sm text-gray-700">
@@ -209,6 +235,25 @@ export default function BuscaFarma() {
                         </div>
                     )}
                 </div>
+                {farmacias.find((farmacia) => farmacia.reserved) && (
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Introduce tu email"
+                            className="w-full max-w-xs rounded border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        />
+                        <Button
+                            onClick={makeReservation}
+                            disabled={!email || !isValidEmail(email)}
+                            className="border border-green-800 px-4 py-2 text-sm text-green-800 hover:bg-green-100 sm:px-5 sm:py-3 sm:text-base md:px-6 md:py-4 md:text-lg"
+                            variant="outline"
+                        >
+                            Hacer reserva
+                        </Button>
+                    </div>
+                )}
                 <nav className="mt-22 mb-12 flex flex-col items-center justify-center gap-6 sm:flex-row sm:gap-12 md:gap-20 lg:gap-36">
                     <Button
                         className="border-green-800 px-10 py-6 text-lg text-green-800 hover:bg-green-100 sm:px-12 sm:py-10 sm:text-3xl md:px-16 md:py-16 md:text-5xl"
@@ -216,11 +261,6 @@ export default function BuscaFarma() {
                     >
                         <a href="http://buscafarma.test/contact">Formulario nuevas farmacias</a>
                     </Button>
-                    {/*
-          <Button className="text-lg sm:text-xl md:text-2xl px-8 py-6 sm:py-10 md:py-12 text-green-800 border-green-800 hover:bg-green-100" variant="outline">
-            <a href="http://buscafarma.test/search">Buscador de medicamentos</a>
-          </Button>  
-          */}
                 </nav>
             </main>
 
