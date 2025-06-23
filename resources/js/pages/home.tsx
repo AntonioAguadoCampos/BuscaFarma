@@ -11,6 +11,7 @@ export default function BuscaFarma() {
     const [productosDisponibles, setProductosDisponibles] = useState<any[]>([]);
     const [address, setAddress] = useState('');
     const [email, setEmail] = useState('');
+    const [inputValue, setInputValue] = useState('');
 
     const isValidEmail = (email: string) => {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -64,7 +65,6 @@ export default function BuscaFarma() {
         })
             .then((res) => res.json())
             .then((data) => {
-                console.log(data);
                 setFarmacias(data);
             });
 
@@ -145,25 +145,22 @@ export default function BuscaFarma() {
                     </Card>
                 </div>
 
-                {/* Video */}
-                <div className="mx-auto my-12 max-w-5xl px-4">
-                    <video className="w-full rounded-xl shadow-lg" controls autoPlay muted loop>
-                        <source src="videos/prueba.mp4" type="video/mp4" />
-                        Tu navegador no soporta la reproducción de vídeo.
-                    </video>
-                </div>
-
                 {/* Buscador integrado */}
-                <header className="xl:text-10xl mb-6 text-center text-4xl font-bold text-green-700 sm:text-7xl md:text-8xl lg:text-9xl">
-                    Búsqueda de medicamentos
-                </header>
-
-                <div className="mx-auto mb-12 max-w-4xl space-y-4">
+                <div className="mx-auto mb-12 max-w-4xl space-y-4 pt-8">
                     {productosDisponibles && (
                         <div>
                             <h2 className="mb-2 text-xl font-semibold text-green-800">Selecciona medicamentos a buscar:</h2>
                             <Select
                                 options={productosDisponibles}
+                                onInputChange={(value) => setInputValue(value)}
+                                filterOption={(option) => inputValue.length >= 3 &&
+                                    option.label.toLowerCase().includes(inputValue.toLowerCase())
+                                }
+                                noOptionsMessage={() =>
+                                    inputValue.length < 3
+                                    ? 'Escribe al menos 3 letras...'
+                                    : 'No hay coincidencias'
+                                }
                                 isMulti
                                 value={historial.map((h) => ({ label: h, value: h }))}
                                 onChange={(selectedOptions) => setHistorial(selectedOptions.map((option) => option.value))}
@@ -244,6 +241,17 @@ export default function BuscaFarma() {
                         </Button>
                     </div>
                 )}
+
+
+                {/* Video */}
+                <div className="mx-auto my-12 max-w-5xl px-4">
+                    <video className="w-full rounded-xl shadow-lg" controls autoPlay muted loop>
+                        <source src="videos/prueba.mp4" type="video/mp4" />
+                        Tu navegador no soporta la reproducción de vídeo.
+                    </video>
+                </div>
+
+               
                 <nav className="mt-22 mb-12 flex flex-col items-center justify-center gap-6 sm:flex-row sm:gap-12 md:gap-20 lg:gap-36">
                     <Button
                         className="border-green-800 px-10 py-6 text-lg text-green-800 hover:bg-green-100 sm:px-12 sm:py-10 sm:text-3xl md:px-16 md:py-16 md:text-5xl"

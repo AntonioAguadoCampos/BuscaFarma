@@ -10,7 +10,8 @@ class Product extends Model
         'name',
         'description',
         'price',
-        'pharmacy_id'
+        'pharmacy_id',
+        'category',
     ];
 
     public function pharmacy()

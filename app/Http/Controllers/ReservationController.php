@@ -16,7 +16,8 @@ class ReservationController extends Controller
         $pharmacies = $request->input('farmacias');
         $email = $request->input('email');
         foreach ($pharmacies as $pharmacy) {
-            $products = Product::whereIn('name', $pharmacy['products'])->get();
+            $productNames = array_map(fn($product) => $product['name'], $pharmacy['products']);
+            $products = Product::whereIn('name', $productNames)->get();
             $reservation = Reservation::create([
                 'pharmacy_id' => $pharmacy['id'],
                 'email' => $email,
@@ -31,7 +32,7 @@ class ReservationController extends Controller
     public static function acceptReservation($record)
     {
         Reservation::where('id', $record->id)->update(['status' => 'approved']);
-        Mail::to($record->email)->send(new ReservationMail('approved'));
+        Mail::to($record->email)->send(new ReservationMail('approved', $record->id));
         return true;
     }
 

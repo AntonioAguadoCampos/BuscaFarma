@@ -8,7 +8,8 @@ class Reservation extends Model
 {
     protected $fillable = [
         'pharmacy_id',
-        'status'
+        'status',
+        'email',
     ];
 
     public function pharmacy()

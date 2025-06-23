@@ -30,6 +30,7 @@ class ProductResource extends Resource
             ->schema([
                 TextInput::make('name')->columnSpanFull(),
                 TextInput::make('description')->columnSpanFull(),
+                TextInput::make('category')->columnSpanFull(),
                 TextInput::make('price')->numeric()->step(0.1)->columnSpanFull()
             ]);
     }
@@ -41,6 +42,7 @@ class ProductResource extends Resource
             ->columns([
                 TextColumn::make('name'),
                 TextColumn::make('description'),
+                TextColumn::make('category'),
                 TextColumn::make('price')->money('EUR'),
             ])
             ->filters([
