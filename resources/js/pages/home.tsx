@@ -89,7 +89,7 @@ export default function BuscaFarma() {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
             },
-            body: JSON.stringify({ productNames: historial }),
+            body: JSON.stringify({ productNames: historial, direccion: address }),
         })
             .then((res) => res.json())
             .then((data) => {
@@ -119,7 +119,8 @@ export default function BuscaFarma() {
                             if (existPharmacy) {
                                 existPharmacy.products.push(product);
                             } else {
-                                pharmacyReq.farmacia.products = [product];
+                                const productObj = pharmacyReq.farmacia.products.find((p: any) => p.name === product);
+                                pharmacyReq.farmacia.products = [productObj];
                                 farmacias.push(pharmacyReq.farmacia);
                             }
                         }
@@ -234,36 +235,51 @@ export default function BuscaFarma() {
                         <div className="mt-8">
                             <h2 className="mb-4 text-2xl font-bold">Farmacias encontradas</h2>
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                                {farmacias.map((farmacia) => (
-                                    <div key={farmacia.id} className="rounded-xl bg-white p-4 shadow">
-                                        <img
-                                            src={`/storage/${farmacia.image}`}
-                                            alt={farmacia.name}
-                                            className="mb-4 h-40 w-full rounded-md object-cover"
-                                        />
-                                        <h3 className="text-xl font-semibold">{farmacia.name}</h3>
-                                        <p className="text-gray-600">{farmacia.address}</p>
-                                        <p className="text-sm text-gray-500">📞 {farmacia.phone}</p>
-                                        <p className="text-sm text-gray-500">📧 {farmacia.email}</p>
-                                        {farmacia.products?.length > 0 && (
-                                            <div className="relative mt-2 rounded-md bg-gray-100 p-4 pt-8">
-                                                <button
-                                                    className="absolute top-2 right-2 rounded-full bg-green-600 px-3 py-1 text-lg text-white shadow transition hover:bg-green-700"
-                                                    title="Agregar producto"
-                                                    onClick={() => addToCart(farmacia)}
-                                                >
-                                                    {farmacia.reserved ? '-' : '+'}
-                                                </button>
-                                                <p className="mb-2 text-sm font-semibold">Productos:</p>
-                                                <ul className="list-inside list-disc text-sm text-gray-700">
-                                                    {farmacia.products.map((product: any) => (
-                                                        <li key={product.id}>{product.name}</li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                                {farmacias.map((farmacia) => {
+                                    const total = farmacia.products?.reduce((sum: number, product: any) => sum + (product.price || 0), 0);
+
+                                    return (
+                                        <div key={farmacia.id} className="rounded-xl bg-white p-4 shadow">
+                                            <img
+                                                src={`/storage/${farmacia.image}`}
+                                                alt={farmacia.name}
+                                                className="mb-4 h-40 w-full rounded-md object-cover"
+                                            />
+                                            <h3 className="text-xl font-semibold">{farmacia.name}</h3>
+                                            <p className="text-gray-600">{farmacia.address}</p>
+                                            <p className="text-sm text-gray-500">📞 {farmacia.phone}</p>
+                                            <p className="text-sm text-gray-500">📧 {farmacia.email}</p>
+
+                                            {farmacia.products?.length > 0 && (
+                                                <div className="relative mt-2 rounded-md bg-gray-100 p-4 pt-8">
+                                                    <button
+                                                        className="absolute top-2 right-2 rounded-full bg-green-600 px-3 py-1 text-lg text-white shadow transition hover:bg-green-700"
+                                                        title="Agregar producto"
+                                                        onClick={() => addToCart(farmacia)}
+                                                    >
+                                                        {farmacia.reserved ? '-' : '+'}
+                                                    </button>
+
+                                                    <p className="mb-2 text-sm font-semibold">Productos:</p>
+                                                    <ul className="list-inside list-disc text-sm text-gray-700">
+                                                        {farmacia.products.map((product: any) => (
+                                                            <li key={product.id}>
+                                                                {product.name} — {product.price ? `${product.price.toFixed(2)} €` : 'Precio no disponible'}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+
+                                                    <p className="mt-4 text-right text-base font-bold text-green-800">
+                                                        Total: {total?.toFixed(2)} €
+                                                    </p>
+                                                    <p className="text-sm text-gray-500">
+                                                        📍 A {farmacia.distancia_metros} metros
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
@@ -296,13 +312,22 @@ export default function BuscaFarma() {
                     </video>
                 </div>
 
-                <nav className="mt-22 mb-12 flex flex-col items-center justify-center gap-6 sm:flex-row sm:gap-12 md:gap-20 lg:gap-36">
-                    <Button
-                        className="border-green-800 px-10 py-6 text-lg text-green-800 hover:bg-green-100 sm:px-12 sm:py-10 sm:text-3xl md:px-16 md:py-16 md:text-5xl"
-                        variant="outline"
-                    >
-                        <a href="http://buscafarma.test/contact">Formulario nuevas farmacias</a>
-                    </Button>
+               
+                <nav className="mt-16 mb-12 flex flex-col items-center justify-center gap-6 sm:gap-10 md:gap-12 lg:gap-14">
+                    <div>
+                        <h2 className="text-3xl text-center font-semibold text-green-600">
+                            ¿Quiere dar a conocer su farmacia?<br/>
+                            ¿Quiere incorporar este nuevo método de venta en la sociedad canaria?
+                        </h2>
+                    </div>
+                    <div>
+                        <Button
+                            className="border-green-800 px-10 py-6 text-lg text-green-800 hover:bg-green-100 sm:px-12 sm:py-10 sm:text-3xl md:px-16 md:py-16 md:text-5xl"
+                            variant="outline"
+                        >
+                            <a href="http://buscafarma.test/contact">Formulario nuevas farmacias</a>
+                        </Button>
+                    </div>
                 </nav>
                 {recentFarmacias.length > 0 && (
                     <div className="mt-8">

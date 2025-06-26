@@ -4,6 +4,10 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Http\Controllers\ReservationController;
+use App\Models\Reservation;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ReservationMail;
 
 class RefuseReservation extends Command
 {
@@ -26,12 +30,25 @@ class RefuseReservation extends Command
      */
     public function handle()
     {
-        $reservations = \App\Models\Reservation::where('status', 'pending')
-            ->where('created_at', '<', now()->subMinutes(30))
+        $reservasPending = Reservation::where('status', 'pending')
+            ->where('created_at', '<=', now()->subMinutes(2))
+            ->with(['pharmacy.user', 'products'])
             ->get();
-        foreach ($reservations as $reservation) {
-            ReservationController::denyReservation($reservation);
+        foreach ($reservasPending as $reserva) {
+            $reserva->status = 'rejected';
+            $reserva->save();
+            $productNames = $reserva->products->pluck('name')->implode(', ');
+            Mail::to($reserva->email)->send(new ReservationMail('rejected', $reserva->id, $reserva->pharmacy->name, $productNames));
         }
-        $this->info('Reservas procesadas desde cron.');
+
+        $reservasSinRecoger = Reservation::where('delivered', 0)
+            ->where('status', 'approved')
+            ->with(['pharmacy.user', 'products'])
+            ->get();
+        foreach ($reservasSinRecoger as $reservaSinRecoger) {
+            Reservation::destroy($reservaSinRecoger->id);
+            $productNames = $reservaSinRecoger->products->pluck('name')->implode(', ');
+            Mail::to($reservaSinRecoger->pharmacy->email)->send(new ReservationMail('deleted', $reservaSinRecoger->id, $reservaSinRecoger->pharmacy->name, $productNames));
+        }
     }
 }

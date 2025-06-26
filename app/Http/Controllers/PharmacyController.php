@@ -22,55 +22,74 @@ class PharmacyController extends Controller
     public function byPrice(Request $request)
     {
         $productNames = $request->input('productNames', []);
+        $direccionUsuario = $request->input('direccion');
+        $googleKey = env('GOOGLE_MAPS_API_KEY');
 
-    if (empty($productNames)) {
-        return response()->json(['error' => 'No product names provided'], 400);
-    }
+        if (empty($productNames)) {
+            return response()->json(['error' => 'No product names provided'], 400);
+        }
 
-    // Paso 1: obtener todos los productos con sus farmacias
-    $products = Product::whereIn('name', $productNames)
-        ->with('pharmacy')
-        ->get();
+        // Paso 1: obtener todos los productos con sus farmacias
+        $products = Product::whereIn('name', $productNames)
+            ->with('pharmacy')
+            ->get();
 
-    // Paso 2: inicializar productos restantes y resultados
-    $remainingNames = collect($productNames);
-    $assignedPharmacies = collect();
+        // Paso 2: inicializar productos restantes y resultados
+        $remainingNames = collect($productNames);
+        $assignedPharmacies = collect();
 
-    while ($remainingNames->isNotEmpty()) {
-        $candidates = $products->filter(fn($p) => $remainingNames->contains($p->name));
+        while ($remainingNames->isNotEmpty()) {
+            $candidates = $products->filter(fn($p) => $remainingNames->contains($p->name));
 
-        // Agrupar por farmacia
-        $grouped = $candidates->groupBy('pharmacy_id')->map(function ($items) {
-            return [
-                'pharmacy' => $items->first()->pharmacy,
-                'products' => $items,
-                'matchCount' => $items->count(),
-                'totalPrice' => $items->sum('price'),
-            ];
-        });
+            // Agrupar por farmacia
+            $grouped = $candidates->groupBy('pharmacy_id')->map(function ($items) {
+                return [
+                    'pharmacy' => $items->first()->pharmacy,
+                    'products' => $items,
+                    'matchCount' => $items->count(),
+                    'totalPrice' => $items->sum('price'),
+                ];
+            });
 
-        if ($grouped->isEmpty()) break;
+            if ($grouped->isEmpty()) break;
 
-        // Buscar farmacias con más coincidencias
-        $maxMatch = $grouped->max('matchCount');
-        $bestMatches = $grouped->filter(fn($g) => $g['matchCount'] === $maxMatch);
+            // Buscar farmacias con más coincidencias
+            $maxMatch = $grouped->max('matchCount');
+            $bestMatches = $grouped->filter(fn($g) => $g['matchCount'] === $maxMatch);
 
-        // Elegir la más barata de las mejores
-        $bestPharmacy = $bestMatches->sortBy('totalPrice')->first();
-        $assignedNames = $bestPharmacy['products']->pluck('name')->unique();
+            // Elegir la más barata de las mejores
+            $bestPharmacy = $bestMatches->sortBy('totalPrice')->first();
+            $assignedNames = $bestPharmacy['products']->pluck('name')->unique();
+            // Consultar Google Maps Distance Matrix
+            $distance = null;
+            $response = Http::get('https://maps.googleapis.com/maps/api/distancematrix/json', [
+                'origins' => $direccionUsuario,
+                'destinations' => $bestPharmacy['pharmacy']->address,
+                'key' => $googleKey,
+                'units' => 'metric',
+            ]);
 
-        // Agregar al resultado
-        $pharmacyData = $bestPharmacy['pharmacy']->toArray();
-        $pharmacyData['products'] = $bestPharmacy['products']->map(fn($p) => [
-            'id' => $p->id,
-            'name' => $p->name,
-            'price' => $p->price,
-        ])->values();
+            if ($response->ok()) {
+                $data = $response->json();
+                if (!empty($data['rows'][0]['elements'][0]['distance']['value'])) {
+                    $distance = $data['rows'][0]['elements'][0]['distance']['value']; // en metros
+                }
+            }
+    
 
-        $assignedPharmacies->push($pharmacyData);
+            // Agregar al resultado
+            $pharmacyData = $bestPharmacy['pharmacy']->toArray();
+            $pharmacyData['distancia_metros'] = $distance;
+            $pharmacyData['products'] = $bestPharmacy['products']->map(fn($p) => [
+                'id' => $p->id,
+                'name' => $p->name,
+                'price' => $p->price,
+            ])->values();
 
-        // Eliminar esos productos del listado restante
-        $remainingNames = $remainingNames->reject(fn($name) => $assignedNames->contains($name));
+            $assignedPharmacies->push($pharmacyData);
+
+            // Eliminar esos productos del listado restante
+            $remainingNames = $remainingNames->reject(fn($name) => $assignedNames->contains($name));
         }
 
         return response()->json($assignedPharmacies->values());
@@ -103,6 +122,7 @@ class PharmacyController extends Controller
 
             $data = $response->json();
             $distancia = $data['rows'][0]['elements'][0]['distance']['value'] ?? null;
+            $farmacia->distancia_metros = $distancia;
 
             $productosCoincidentes = $farmacia->products->map(function ($p) {
                 return [
@@ -114,7 +134,6 @@ class PharmacyController extends Controller
 
             $resultados[] = [
                 'farmacia' => $farmacia,
-                'distancia_metros' => $distancia,
                 'productos' => $productosCoincidentes,
             ];
         }

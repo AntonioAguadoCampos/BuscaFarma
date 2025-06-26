@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('pharmacy_id')->constrained()->cascadeOnDelete();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->boolean('delivered')->default(false);
             $table->string('email');
             $table->timestamps();
         });

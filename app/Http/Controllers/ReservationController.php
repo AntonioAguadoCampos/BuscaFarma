@@ -29,17 +29,19 @@ class ReservationController extends Controller
         return response()->json(['message' => 'Reservas guardadas correctamente']);
     }
 
-    public static function acceptReservation($record)
+    public static function acceptReservation($record, $name)
     {
         Reservation::where('id', $record->id)->update(['status' => 'approved']);
-        Mail::to($record->email)->send(new ReservationMail('approved', $record->id));
+        $productNames = $record->products->pluck('name')->join(',');
+        Mail::to($record->email)->send(new ReservationMail('approved', $record->id, $name, $productNames));
         return true;
     }
 
-    public static function denyReservation($record)
+    public static function denyReservation($record, $name)
     {
         Reservation::where('id', $record->id)->update(['status' => 'rejected']);
-        Mail::to($record->email)->send(new ReservationMail('rejected'));
+        $productNames = $record->products->pluck('name')->join(',');
+        Mail::to($record->email)->send(new ReservationMail('rejected', $record->id, $name, $productNames));
         return true;
     }
 

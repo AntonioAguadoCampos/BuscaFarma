@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\SelectFilter;
 
 class ReservationResource extends Resource
 {
@@ -37,6 +38,9 @@ class ReservationResource extends Resource
         return $table
             ->query(
                 static::getEloquentQuery()
+                    ->whereHas('pharmacy', function ($query) {
+                        $query->where('user_id', Auth::id());
+                    })
                     ->orderByRaw("
                         CASE status
                             WHEN 'pending' THEN 1
@@ -64,9 +68,27 @@ class ReservationResource extends Resource
                         'danger' => 'rejected',
                         'warning' => 'pending',
                     ]),
+                IconColumn::make('delivered')
+                    ->label('Recogida')
+                    ->options([
+                        'heroicon-o-check-circle' => 1,
+                        'heroicon-o-x-circle' => 0,
+                    ])
+                    ->colors([
+                        'success' => 1,
+                        'danger' => 0,
+                    ]),
                 ])
             ->filters([
-                //
+                SelectFilter::make('status')
+                ->label('Estado')
+                ->options([
+                    'pending' => 'Pendiente',
+                    'approved' => 'Aprobado',
+                    'rejected' => 'Rechazado',
+                ])
+                ->default(null)
+                ->placeholder('Todos'),
             ])
             ->actions([
                 Action::make('accept')
@@ -74,7 +96,7 @@ class ReservationResource extends Resource
                     ->icon('heroicon-o-check')
                     ->color('success')
                     ->action(function ($record) {
-                        ReservationController::acceptReservation($record);
+                        ReservationController::acceptReservation($record, auth()->user()->name);
                     })
                     ->visible(fn ($record) => $record->status === 'pending')
                     ->tooltip('Aceptar reserva'),
@@ -83,10 +105,28 @@ class ReservationResource extends Resource
                     ->icon('heroicon-o-x-mark')
                     ->color('danger')
                     ->action(function ($record) {
-                        ReservationController::denyReservation($record);
+                        ReservationController::denyReservation($record, auth()->user()->name);
                     })
                     ->visible(fn ($record) => $record->status === 'pending')
                     ->tooltip('Rechazar reserva'),
+                Action::make('done')
+                    ->label('Recogida')
+                    ->icon('heroicon-o-check')
+                    ->color('success')
+                    ->action(function ($record) {
+                        Reservation::where('id', $record->id)->update(['delivered' => 1]);
+                    })
+                    ->visible(fn ($record) => $record->status === 'approved' && !$record->delivered)
+                    ->tooltip('Marcar la reserva como recogida'),
+                Action::make('reject')
+                    ->label('No recogida')
+                    ->icon('heroicon-o-x-mark')
+                    ->color('danger')
+                    ->action(function ($record) {
+                        Reservation::destroy($record->id);
+                    })
+                    ->visible(fn ($record) => $record->status === 'approved' && !$record->delivered)
+                    ->tooltip('Marcar la reserva como no recogida'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -111,7 +151,7 @@ class ReservationResource extends Resource
         ];
     }
 
-    public static function getEloquentQuery(): Builder
+    public static function getEloquentQuery(): Builder 
     {
         return parent::getEloquentQuery()->with('products');
     }
