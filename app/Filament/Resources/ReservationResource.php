@@ -35,6 +35,17 @@ class ReservationResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->query(
+                static::getEloquentQuery()
+                    ->orderByRaw("
+                        CASE status
+                            WHEN 'pending' THEN 1
+                            WHEN 'approved' THEN 2
+                            WHEN 'rejected' THEN 3
+                            ELSE 4
+                        END
+                    ")
+            )
             ->columns([
                 TextColumn::make('id')
                     ->label('Identificador'),
@@ -109,4 +120,5 @@ class ReservationResource extends Resource
     {
         return Auth::user()?->email !== 'aac@gmail.com';
     }
+    
 }

@@ -9,6 +9,7 @@ use App\Http\Controllers\ReservationController;
 Route::get('/pharmacies', [PharmacyController::class, 'index']);
 Route::post('/pharmacies/byPrice', [PharmacyController::class, 'byPrice']);
 Route::post('/pharmacies/byLocation', [PharmacyController::class, 'byLocation']);
+Route::get('/pharmacies/recent', [PharmacyController::class, 'recent']);
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/categories', [ProductController::class, 'categories']);
 Route::post('/messages', [MessageController::class, 'create']);

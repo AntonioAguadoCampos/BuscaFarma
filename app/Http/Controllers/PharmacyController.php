@@ -124,5 +124,12 @@ class PharmacyController extends Controller
         return response()->json($resultados);
     }
 
+    public function recent()
+    {
+        $latestProducts = Pharmacy::latest()->take(3)->get();
+
+        return response()->json($latestProducts);
+    }
+
 
 }
