@@ -22,5 +22,15 @@ class ProductController extends Controller
 
         return response()->json($categories);
     }
+
+    public function recent()
+    {
+        $products = Product::with('pharmacy:id,name')
+            ->latest()
+            ->take(3)
+            ->get();
+
+        return response()->json($products);
+    }
     
 }

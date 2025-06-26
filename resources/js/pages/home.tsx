@@ -16,6 +16,7 @@ export default function BuscaFarma() {
     const [email, setEmail] = useState('');
     const [inputValue, setInputValue] = useState('');
     const [recentFarmacias, setRecentFarmacias] = useState<any[]>([]);
+    const [recentProducts, setRecentProducts] = useState<any[]>([]);
 
     const isValidEmail = (email: string) => {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -24,7 +25,8 @@ export default function BuscaFarma() {
     useEffect(() => {
         getProducts();
         getLocation();
-        getRecent();
+        getRecentPharmacies();
+        getRecentProducts();
     }, []);
 
     const getProducts = async () => {
@@ -39,12 +41,21 @@ export default function BuscaFarma() {
         }
     };
 
-    const getRecent = async () => {
+    const getRecentPharmacies = async () => {
         try {
-            const response = await fetch('/api/pharmacies/recent');
+            const response = await fetch('/api/pharmacies/recents');
             const data = await response.json();
-            console.log(data);
             setRecentFarmacias(data);
+        } catch (error) {
+            console.error('Error al obtener los nombres de productos:', error);
+        }
+    };
+
+    const getRecentProducts = async () => {
+        try {
+            const response = await fetch('/api/products/recents');
+            const data = await response.json();
+            setRecentProducts(data);
         } catch (error) {
             console.error('Error al obtener los nombres de productos:', error);
         }
@@ -303,6 +314,20 @@ export default function BuscaFarma() {
                                     <p className="text-gray-600">{farmacia.address}</p>
                                     <p className="text-sm text-gray-500">📞 {farmacia.phone}</p>
                                     <p className="text-sm text-gray-500">📧 {farmacia.email}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {recentProducts.length > 0 && (
+                    <div className="mt-8">
+                        <h2 className="mb-4 text-2xl font-bold">Últimos productos añadidos</h2>
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            {recentProducts.map((product) => (
+                                <div key={product.id} className="rounded-xl bg-white p-4 shadow">
+                                    <h3 className="text-xl font-semibold">{product.name}</h3>
+                                    <p className="text-gray-600">{product.description}</p>
+                                    <p className="text-sm text-gray-500">🏥 {product.pharmacy.name}</p>
                                 </div>
                             ))}
                         </div>
