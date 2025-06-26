@@ -6,9 +6,12 @@ import { useEffect, useState } from 'react';
 import Select from 'react-select';
 
 export default function BuscaFarma() {
-    const [historial, setHistorial] = useState<string[]>([]);
     const [farmacias, setFarmacias] = useState<any[]>([]);
-    const [productosDisponibles, setProductosDisponibles] = useState<any[]>([]);
+    const [originalProducts, setOriginalProducts] = useState<any[]>([]);
+    const [productos, setProductos] = useState<any[]>([]);
+    const [categorias, setCategorias] = useState<any[]>([]);
+    const [historial, setHistorial] = useState<string[]>([]);
+    const [categoriasFiltradas, setCategoriasFiltradas] = useState<string[]>([]);
     const [address, setAddress] = useState('');
     const [email, setEmail] = useState('');
     const [inputValue, setInputValue] = useState('');
@@ -26,7 +29,9 @@ export default function BuscaFarma() {
         try {
             const response = await fetch('/api/products');
             const data = await response.json();
-            setProductosDisponibles(data.map((name: string) => ({ label: name, value: name })));
+            setOriginalProducts(data);
+            setProductos(data.map((p: any) => ({ label: p.name, value: p.name })));
+            setCategorias(data.map((c: any) => ({ label: c.category, value: c.category })));
         } catch (error) {
             console.error('Error al obtener los nombres de productos:', error);
         }
@@ -45,7 +50,6 @@ export default function BuscaFarma() {
 
                 if (data.status === 'OK') {
                     const formatted = data.results[0]?.formatted_address;
-                    console.log(data.results);
                     setAddress(formatted || 'Dirección no encontrada');
                 }
             } catch (err: any) {
@@ -100,6 +104,18 @@ export default function BuscaFarma() {
                 setFarmacias(farmacias);
             });
 
+    const filterProducts = (option: any) => {
+        const product = originalProducts.find((p) => p.name === option.value);
+        if (categoriasFiltradas.length > 0) {
+            return (
+                inputValue.length >= 3 &&
+                option.label.toLowerCase().includes(inputValue.toLowerCase()) &&
+                categoriasFiltradas.includes(product.category)
+            );
+        }
+        return inputValue.length >= 3 && option.label.toLowerCase().includes(inputValue.toLowerCase());
+    };
+
     const addToCart = (farmacia: any) => {
         farmacia.reserved = !farmacia.reserved;
         setFarmacias([...farmacias]);
@@ -121,6 +137,7 @@ export default function BuscaFarma() {
             <main className="flex-grow p-6 sm:p-6">
                 <header className="xl:text-10xl mb-10 text-center text-4xl font-bold text-green-700 sm:text-7xl md:text-8xl lg:text-9xl">
                     BuscaFarma
+                    {inputValue}
                 </header>
                 <div className="flex justify-center px-4">
                     <Card className="flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl shadow-lg md:flex-row">
@@ -147,37 +164,42 @@ export default function BuscaFarma() {
 
                 {/* Buscador integrado */}
                 <div className="mx-auto mb-12 max-w-4xl space-y-4 pt-8">
-                    {productosDisponibles && (
+                    {productos && (
                         <div>
                             <h2 className="mb-2 text-xl font-semibold text-green-800">Selecciona medicamentos a buscar:</h2>
-                            <Select
-                                options={productosDisponibles}
-                                onInputChange={(value) => setInputValue(value)}
-                                filterOption={(option) => inputValue.length >= 3 &&
-                                    option.label.toLowerCase().includes(inputValue.toLowerCase())
-                                }
-                                noOptionsMessage={() =>
-                                    inputValue.length < 3
-                                    ? 'Escribe al menos 3 letras...'
-                                    : 'No hay coincidencias'
-                                }
-                                isMulti
-                                value={historial.map((h) => ({ label: h, value: h }))}
-                                onChange={(selectedOptions) => setHistorial(selectedOptions.map((option) => option.value))}
-                                placeholder="Buscar y seleccionar productos..."
-                            />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <Select
+                                    options={productos}
+                                    onInputChange={(value) => setInputValue(value)}
+                                    filterOption={(option) => filterProducts(option)}
+                                    noOptionsMessage={() => (inputValue.length < 3 ? 'Escribe al menos 3 letras...' : 'No hay coincidencias')}
+                                    isMulti
+                                    value={historial.map((h) => ({ label: h, value: h }))}
+                                    onChange={(selectedOptions) => setHistorial(selectedOptions.map((option) => option.value))}
+                                    placeholder="Buscar y seleccionar productos..."
+                                />
+                                <Select
+                                    options={categorias}
+                                    isMulti
+                                    value={categoriasFiltradas.map((h) => ({ label: h, value: h }))}
+                                    onChange={(selectedOptions) => setCategoriasFiltradas(selectedOptions.map((option) => option.value))}
+                                    placeholder="Buscar y seleccionar categorias..."
+                                />
+                            </div>
                         </div>
                     )}
 
                     <div className="mt-6 flex flex-wrap justify-center gap-6">
                         <Button
                             onClick={filterByPrice}
+                            disabled={!historial || historial.length === 0}
                             className="rounded-md border border-green-800 bg-green-800 px-6 py-3 text-white hover:bg-green-700"
                         >
                             Búsqueda por precio
                         </Button>
                         <Button
                             onClick={filterByLocation}
+                            disabled={!historial || historial.length === 0}
                             className="rounded-md border border-green-800 bg-green-800 px-6 py-3 text-white hover:bg-green-700"
                         >
                             Búsqueda por distancia
@@ -242,7 +264,6 @@ export default function BuscaFarma() {
                     </div>
                 )}
 
-
                 {/* Video */}
                 <div className="mx-auto my-12 max-w-5xl px-4">
                     <video className="w-full rounded-xl shadow-lg" controls autoPlay muted loop>
@@ -251,7 +272,6 @@ export default function BuscaFarma() {
                     </video>
                 </div>
 
-               
                 <nav className="mt-22 mb-12 flex flex-col items-center justify-center gap-6 sm:flex-row sm:gap-12 md:gap-20 lg:gap-36">
                     <Button
                         className="border-green-800 px-10 py-6 text-lg text-green-800 hover:bg-green-100 sm:px-12 sm:py-10 sm:text-3xl md:px-16 md:py-16 md:text-5xl"

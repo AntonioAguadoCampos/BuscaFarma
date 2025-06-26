@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description');
-            $table->text('category');
+            $table->enum('category', ['Antídoto', 'Analgésico', 'Ansiolítico', 'Antibiótico', 'Antiinflamatorio', 'Antipirético', 'Antiséptico', 'Antitérmico', 'Antitusígeno', 'Broncodilatador', 'Expectorante', 'Inmunomodulador', 'Vasodilatador']);
             $table->foreignId('pharmacy_id')
                 ->constrained()
                 ->onDelete('cascade');

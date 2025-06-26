@@ -10,12 +10,17 @@ class ProductController extends Controller
 
     public function index()
     {
-        $nombres = Product::select('name')
-        ->distinct()
-        ->orderBy('name')
-        ->pluck('name');
+        return response()->json(Product::all()); 
+    }
 
-    return response()->json($nombres);
+    public function categories()
+    {
+        $categories = Product::select('category')
+        ->distinct()
+        ->orderBy('category')
+        ->pluck('category');
+
+        return response()->json($categories);
     }
     
 }

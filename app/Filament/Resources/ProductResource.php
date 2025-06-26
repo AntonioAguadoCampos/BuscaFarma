@@ -14,6 +14,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Illuminate\Support\Facades\Auth;
@@ -30,7 +31,23 @@ class ProductResource extends Resource
             ->schema([
                 TextInput::make('name')->columnSpanFull(),
                 TextInput::make('description')->columnSpanFull(),
-                TextInput::make('category')->columnSpanFull(),
+                Select::make('category')
+                ->options([
+                    'Antídoto' => 'Antídoto',
+                    'Antídoto' => 'Antídoto',
+                    'Analgésico' => 'Analgésico',
+                    'Ansiolítico' => 'Ansiolítico',
+                    'Antibiótico' => 'Antibiótico',
+                    'Antiinflamatorio' => 'Antiinflamatorio',
+                    'Antipirético' => 'Antipirético',
+                    'Antiséptico' => 'Antiséptico',
+                    'Antitérmico' => 'Antitérmico',
+                    'Antitusígeno' => 'Antitusígeno',
+                    'Broncodilatador' => 'Broncodilatador',
+                    'Expectorante' => 'Expectorante',
+                    'Inmunomodulador' => 'Inmunomodulador',
+                    'Vasodilatador' => 'Vasodilatador'
+                ])->columnSpanFull(),
                 TextInput::make('price')->numeric()->step(0.1)->columnSpanFull()
             ]);
     }
