@@ -264,17 +264,19 @@ export default function BuscaFarma() {
                                                     <ul className="list-inside list-disc text-sm text-gray-700">
                                                         {farmacia.products.map((product: any) => (
                                                             <li key={product.id}>
-                                                                {product.name} — {product.price ? `${product.price.toFixed(2)} €` : 'Precio no disponible'}
+                                                                {product.name} —{' '}
+                                                                {product.price ? `${product.price.toFixed(2)} €` : 'Precio no disponible'}
                                                             </li>
                                                         ))}
                                                     </ul>
 
-                                                    <p className="mt-4 text-right text-base font-bold text-green-800">
-                                                        Total: {total?.toFixed(2)} €
-                                                    </p>
-                                                    <p className="text-sm text-gray-500">
-                                                        📍 A {farmacia.distancia_metros} metros
-                                                    </p>
+                                                    <p className="mt-4 text-right text-base font-bold text-green-800">Total: {total?.toFixed(2)} €</p>
+                                                    {farmacia.distancia_metros < 1000 && (
+                                                        <p className="text-sm text-gray-500">📍 A {farmacia.distancia_metros} m</p>
+                                                    )}
+                                                    {farmacia.distancia_metros >= 1000 && (
+                                                        <p className="text-sm text-gray-500">📍 A {farmacia.distancia_metros / 1000} km</p>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
@@ -312,11 +314,11 @@ export default function BuscaFarma() {
                     </video>
                 </div>
 
-               
                 <nav className="mt-16 mb-12 flex flex-col items-center justify-center gap-6 sm:gap-10 md:gap-12 lg:gap-14">
                     <div>
-                        <h2 className="text-3xl text-center font-semibold text-green-600">
-                            ¿Quiere dar a conocer su farmacia?<br/>
+                        <h2 className="text-center text-3xl font-semibold text-green-600">
+                            ¿Quiere dar a conocer su farmacia?
+                            <br />
                             ¿Quiere incorporar este nuevo método de venta en la sociedad canaria?
                         </h2>
                     </div>
