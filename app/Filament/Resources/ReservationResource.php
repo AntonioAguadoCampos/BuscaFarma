@@ -71,12 +71,14 @@ class ReservationResource extends Resource
                 IconColumn::make('delivered')
                     ->label('Recogida')
                     ->options([
-                        'heroicon-o-check-circle' => 1,
-                        'heroicon-o-x-circle' => 0,
+                        'heroicon-o-check-circle' => 'delivered',
+                        'heroicon-o-x-circle' => 'rejected',
+                        'heroicon-o-clock' => 'pending',
                     ])
                     ->colors([
-                        'success' => 1,
-                        'danger' => 0,
+                        'success' => 'delivered',
+                        'danger' => 'rejected',
+                        'warning' => 'pending',
                     ]),
                 ])
             ->filters([
@@ -114,18 +116,18 @@ class ReservationResource extends Resource
                     ->icon('heroicon-o-check')
                     ->color('success')
                     ->action(function ($record) {
-                        Reservation::where('id', $record->id)->update(['delivered' => 1]);
+                        Reservation::where('id', $record->id)->update(['delivered' => 'delivered']);
                     })
-                    ->visible(fn ($record) => $record->status === 'approved' && !$record->delivered)
+                    ->visible(fn ($record) => $record->status === 'approved' && $record->delivered === 'pending')
                     ->tooltip('Marcar la reserva como recogida'),
                 Action::make('reject')
                     ->label('No recogida')
                     ->icon('heroicon-o-x-mark')
                     ->color('danger')
                     ->action(function ($record) {
-                        Reservation::destroy($record->id);
+                        Reservation::where('id', $record->id)->update(['delivered' => 'rejected']);
                     })
-                    ->visible(fn ($record) => $record->status === 'approved' && !$record->delivered)
+                    ->visible(fn ($record) => $record->status === 'approved' && $record->delivered === 'pending')
                     ->tooltip('Marcar la reserva como no recogida'),
             ])
             ->bulkActions([

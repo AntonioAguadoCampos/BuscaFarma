@@ -39,7 +39,7 @@ class ReservationController extends Controller
 
     public static function denyReservation($record, $name)
     {
-        Reservation::where('id', $record->id)->update(['status' => 'rejected']);
+        Reservation::where('id', $record->id)->update(['status' => 'rejected', 'delivered' => 'rejected']);
         $productNames = $record->products->pluck('name')->join(',');
         Mail::to($record->email)->send(new ReservationMail('rejected', $record->id, $name, $productNames));
         return true;

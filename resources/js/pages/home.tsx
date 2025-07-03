@@ -160,32 +160,13 @@ export default function BuscaFarma() {
     return (
         <div className="flex min-h-screen flex-col bg-white p-6 font-sans">
             <main className="flex-grow p-6 sm:p-6">
-                <header className="xl:text-10xl mb-10 text-center text-4xl font-bold text-green-700 sm:text-7xl md:text-8xl lg:text-9xl">
-                    BuscaFarma
-                    {inputValue}
-                </header>
-                <div className="flex justify-center px-4">
-                    <Card className="flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl shadow-lg md:flex-row">
-                        <div className="flex items-center justify-center bg-white p-4 md:w-1/2">
-                            <img src="logo1.jpeg" alt="BuscaFarma" className="h-100 w-auto object-contain" />
-                        </div>
-
-                        <CardContent className="flex items-center justify-center p-2 md:w-1/2">
-                            <div>
-                                <p className="pr-4 text-center text-2xl text-green-900 md:text-justify">
-                                    BuscaFarma es una aplicación diseñada para ayudarte a encontrar medicamentos disponibles en farmacias cercanas de
-                                    forma rápida y confiable.
-                                </p>
-                                <ul className="mt-4 list-disc pr-4 pl-6 text-left text-base text-lg text-emerald-700">
-                                    <li>Facilitamos a los farmacéuticos el dar a conocer los productos con los que trabajan</li>
-                                    <li>
-                                        A los compradores les proporcionamos la información de las farmacias que trabajan el medicamento que necesitan
-                                    </li>
-                                </ul>
-                            </div>
-                        </CardContent>
-                    </Card>
+                <div className='flex items-center justify-center gap-6'> 
+                    <img src="logo1.png" alt="BuscaFarma" className="h-100 w-auto object-contain" style={{width: '85px', height: '85px'}}/>
+                    <header className="xl:text-10xl text-center text-4xl font-bold text-green-700 sm:text-7xl md:text-8xl lg:text-9xl">
+                        BuscaFarma
+                    </header>
                 </div>
+                
 
                 {/* Buscador integrado */}
                 <div className="mx-auto mb-12 max-w-4xl space-y-4 pt-8">
@@ -272,10 +253,10 @@ export default function BuscaFarma() {
 
                                                     <p className="mt-4 text-right text-base font-bold text-green-800">Total: {total?.toFixed(2)} €</p>
                                                     {farmacia.distancia_metros < 1000 && (
-                                                        <p className="text-sm text-gray-500">📍 A {farmacia.distancia_metros} m</p>
+                                                        <p className="text-sm text-gray-500">📍 A {farmacia.distancia_metros.toLocaleString('es')} m</p>
                                                     )}
                                                     {farmacia.distancia_metros >= 1000 && (
-                                                        <p className="text-sm text-gray-500">📍 A {farmacia.distancia_metros / 1000} km</p>
+                                                        <p className="text-sm text-gray-500">📍 A {(farmacia.distancia_metros / 1000).toLocaleString('es')} km</p>
                                                     )}
                                                 </div>
                                             )}
@@ -306,10 +287,31 @@ export default function BuscaFarma() {
                     </div>
                 )}
 
+                <div className="flex justify-center px-4">
+                    <Card className="flex w-full max-w-4xl flex-col gap-4 overflow-hidden rounded-2xl shadow-lg md:flex-row">
+                        {/* Contenido de texto */}
+                        <CardContent className="flex items-center justify-center p-4 md:w-1/2">
+                            <div>
+                                <p className="mb-4 text-center text-2xl text-green-900 md:text-justify">
+                                BuscaFarma es una aplicación diseñada para ayudarte a encontrar medicamentos disponibles en farmacias cercanas de
+                                forma rápida y confiable.
+                                </p>
+                            </div>
+                        </CardContent>
+
+                        <CardContent className="flex items-center justify-center p-4 md:w-1/2">
+                            <ul className="list-disc pl-6 text-left text-lg text-emerald-700 space-y-2">
+                                <li>Facilitamos a los farmacéuticos el dar a conocer los productos con los que trabajan</li>
+                                <li>A los compradores les proporcionamos la información de las farmacias que trabajan el medicamento que necesitan</li>
+                            </ul>
+                        </CardContent>
+                    </Card>
+                </div>
+
                 {/* Video */}
                 <div className="mx-auto my-12 max-w-5xl px-4">
                     <video className="w-full rounded-xl shadow-lg" controls autoPlay muted loop>
-                        <source src="videos/prueba.mp4" type="video/mp4" />
+                        <source src="videos/BuscaFarma.mp4" type="video/mp4" />
                         Tu navegador no soporta la reproducción de vídeo.
                     </video>
                 </div>
@@ -340,7 +342,7 @@ export default function BuscaFarma() {
                                     <h3 className="text-xl font-semibold">{farmacia.name}</h3>
                                     <p className="text-gray-600">{farmacia.address}</p>
                                     <p className="text-sm text-gray-500">📞 {farmacia.phone}</p>
-                                    <p className="text-sm text-gray-500">📧 {farmacia.email}</p>
+                                    <p className="text-sm text-gray-500">✉️ {farmacia.email}</p>
                                 </div>
                             ))}
                         </div>
@@ -354,7 +356,7 @@ export default function BuscaFarma() {
                                 <div key={product.id} className="rounded-xl bg-white p-4 shadow">
                                     <h3 className="text-xl font-semibold">{product.name}</h3>
                                     <p className="text-gray-600">{product.description}</p>
-                                    <p className="text-sm text-gray-500">🏥 {product.pharmacy.name}</p>
+                                    <p className="text-sm text-gray-500">💊 {product.pharmacy.name}</p>
                                 </div>
                             ))}
                         </div>
